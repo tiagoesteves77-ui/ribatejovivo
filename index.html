@@ -3,13 +3,964 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ribatejo Vivo</title>
+<title>Ribatejo Vivo — Plataforma de Gestão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1A3D28;--green-mid:#2C5F2D;--green-light:#4A8C5C;
+  --gold:#C8971F;--gold-light:#E8B84B;
+  --cream:#F9F5EE;--white:#ffffff;--dark:#111;
+  --surface:#fff;--bg:#F4F7F4;--border:#D8E4D9;
+  --text:#1A2E1E;--muted:#6B7C6E;--muted-light:#B0C4B2;
+  --success:#2E7D32;--success-bg:#E8F5E9;
+  --warning:#E65100;--warning-bg:#FFF3E0;
+  --info:#1565C0;--info-bg:#E3F2FD;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── LAYOUT ── */
+.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{background:var(--green);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main-area{display:flex;flex-direction:column;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sb-logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,0.1)}
+.sb-logo h1{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold-light);letter-spacing:0.5px}
+.sb-logo p{font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+.sb-section{padding:1rem 1rem 0.25rem;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 14px;margin:1px 8px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:rgba(255,255,255,0.65);transition:all 0.15s;text-decoration:none}
+.sb-item:hover{background:rgba(255,255,255,0.08);color:#fff}
+.sb-item.active{background:rgba(200,151,31,0.22);color:var(--gold-light)}
+.sb-item svg{width:17px;height:17px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
+.sb-badge{margin-left:auto;background:var(--gold);color:var(--green);font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;line-height:1.6}
+.sb-badge.ai{background:var(--gold-light);color:var(--green)}
+.sb-footer{margin-top:auto;padding:1rem;border-top:1px solid rgba(255,255,255,0.08)}
+.sb-footer p{font-size:11px;color:rgba(255,255,255,0.3);line-height:1.5}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0.875rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar h2{font-size:16px;font-weight:700;color:var(--green)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-date{font-size:12px;color:var(--muted)}
+.topbar-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50}
+
+/* ── CONTENT ── */
+.content{padding:1.5rem;flex:1}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:1rem;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:0.5px}
+.card-title svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8}
+
+/* ── STATS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.125rem}
+.stat-card .slabel{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.stat-card .sval{font-family:'Playfair Display',serif;font-size:26px;color:var(--green)}
+.stat-card .ssub{font-size:11px;color:var(--muted-light);margin-top:3px}
+.stat-card .sdot{width:6px;height:6px;border-radius:50%;background:#4CAF50;display:inline-block;margin-right:4px}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;font-size:11px;font-weight:700;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
+tbody td{padding:10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#F8FCF8}
+.td-name{font-weight:700;color:var(--green)}
+
+/* ── BADGES ── */
+.badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700;white-space:nowrap}
+.b-green{background:var(--success-bg);color:var(--success)}
+.b-amber{background:var(--warning-bg);color:var(--warning)}
+.b-blue{background:var(--info-bg);color:var(--info)}
+.b-gray{background:#F0F4F1;color:var(--muted)}
+.b-gold{background:#FFF8E1;color:#7B5A00}
+
+/* ── PROGRESS ── */
+.prog-wrap{display:flex;align-items:center;gap:8px}
+.prog-bar{flex:1;height:5px;background:#E0EBE0;border-radius:3px;overflow:hidden;min-width:50px}
+.prog-fill{height:100%;background:var(--green-mid);border-radius:3px;transition:width 0.4s}
+.prog-val{font-size:11px;color:var(--muted);min-width:28px;text-align:right}
+
+/* ── FORMS ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.field input,.field select,.field textarea{
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:9px 12px;font-size:14px;background:#FAFCFA;color:var(--text);
+  font-family:'Lato',sans-serif;outline:none;transition:border-color 0.2s;width:100%
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green-mid);background:#fff}
+.field textarea{resize:vertical;min-height:80px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:var(--radius);font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all 0.15s;font-family:'Lato',sans-serif;letter-spacing:0.3px;text-decoration:none}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.btn-primary{background:var(--green);color:#fff}.btn-primary:hover{background:var(--green-mid)}
+.btn-gold{background:var(--gold);color:var(--green)}.btn-gold:hover{background:var(--gold-light)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}.btn-outline:hover{background:var(--bg)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.btn:disabled{opacity:0.5;cursor:default}
+
+/* ── STEPS ── */
+.steps{display:flex;margin-bottom:1.25rem}
+.step-item{flex:1;padding:10px 12px;text-align:center;font-size:12px;font-weight:700;background:var(--bg);color:var(--muted);border:1px solid var(--border);border-right:none}
+.step-item:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+.step-item:last-child{border-right:1px solid var(--border);border-radius:0 var(--radius) var(--radius) 0}
+.step-item.done{background:var(--success-bg);color:var(--success);border-color:#A5D6A7}
+.step-item.active{background:var(--green);color:#fff;border-color:var(--green)}
+.step-num{display:block;font-size:16px;margin-bottom:2px}
+.prog-steps{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.25rem;overflow:hidden}
+.prog-steps-fill{height:100%;background:var(--green);border-radius:2px;transition:width 0.35s}
+
+/* ── CHAT ── */
+.chat-shell{display:flex;flex-direction:column;height:calc(100vh - 130px);min-height:500px}
+.chat-msgs{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0}
+.msg-wrap{display:flex;flex-direction:column;gap:3px}
+.msg-who{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:0 4px}
+.msg-ai{background:var(--surface);color:var(--text);border-radius:2px 12px 12px 12px;padding:11px 15px;font-size:13px;line-height:1.6;border:1px solid var(--border);align-self:flex-start;max-width:88%}
+.msg-user{background:var(--green);color:#fff;border-radius:12px 2px 12px 12px;padding:11px 15px;font-size:13px;line-height:1.6;align-self:flex-end;max-width:88%}
+.typing-dots{display:flex;gap:5px;padding:12px 16px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted-light);animation:bounce 1.2s infinite}
+.dot:nth-child(2){animation-delay:0.2s}.dot:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+.chat-suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:0.75rem 1rem;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.sugg{font-size:12px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;color:var(--muted);background:var(--surface);transition:all 0.15s;white-space:nowrap}
+.sugg:hover{border-color:var(--green-mid);color:var(--green);background:#F0F8F0}
+.chat-input-bar{display:flex;gap:8px;padding:0.875rem;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg)}
+.chat-input-bar input{flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;font-size:14px;background:var(--bg);color:var(--text);outline:none;font-family:'Lato',sans-serif}
+.chat-input-bar input:focus{border-color:var(--green-mid);background:#fff}
+
+/* ── ALERT ── */
+.alert{padding:12px 16px;border-radius:var(--radius);font-size:13px;margin-bottom:1rem;border-left:3px solid}
+.alert-success{background:var(--success-bg);color:var(--success);border-color:var(--success)}
+.alert-info{background:var(--info-bg);color:var(--info);border-color:var(--info)}
+
+/* ── MUNICIPIO CARDS ── */
+.muni-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.muni-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.125rem}
+.muni-card.active-muni{border-left:3px solid var(--green)}
+.muni-name{font-weight:700;font-size:14px;color:var(--green);margin-bottom:3px}
+.muni-desc{font-size:11px;color:var(--muted);margin-bottom:10px}
+.muni-stats{display:flex;gap:16px;padding-top:8px;border-top:1px solid var(--border)}
+.muni-stat-val{font-weight:700;font-size:17px;color:var(--green)}
+.muni-stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase}
+
+/* ── FUNDO CARDS ── */
+.fundos-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:1rem}
+.fundo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem}
+.fundo-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:5px}
+.fundo-name{font-size:14px;font-weight:700;color:var(--green);margin-bottom:3px}
+.fundo-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px}
+.fundo-meta{display:flex;gap:8px;flex-wrap:wrap}
+.fundo-pill{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--success-bg);color:var(--success);font-weight:700}
+
+/* ── SUCCESS ── */
+.success-center{text-align:center;padding:2.5rem 1rem}
+.success-icon{font-size:52px;color:var(--success);margin-bottom:1rem}
+.success-icon svg{width:52px;height:52px;stroke:var(--success);fill:none;stroke-width:1.5}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .muni-grid{grid-template-columns:1fr}
+  .fundos-grid{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+}
+
+.row-actions{display:flex;gap:6px;align-items:center}
+</style>
 </head>
-<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#1A3D28;color:#E8B84B;text-align:center">
-<div>
-<h1 style="font-size:3rem;margin-bottom:1rem">Ribatejo Vivo</h1>
-<p style="font-size:1.2rem;color:rgba(255,255,255,0.7)">Plataforma de Gestão em construção</p>
-<p style="margin-top:2rem;font-size:1rem;color:rgba(255,255,255,0.5)">ribatejovivo.com</p>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <h1>Ribatejo Vivo</h1>
+      <p>Plataforma de Gestão</p>
+    </div>
+
+    <div class="sb-section">Principal</div>
+    <a class="sb-item active" onclick="go('dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a class="sb-item" onclick="go('agente')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/><path d="M9 14h6"/></svg>
+      Agente IA <span class="sb-badge ai">IA</span>
+    </a>
+
+    <div class="sb-section">Gestão</div>
+    <a class="sb-item" onclick="go('negocios')">
+      <svg viewBox="0 0 24 24"><path d="M3 9h18M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2M3 9v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/><path d="M9 14h6"/></svg>
+      Negócios <span class="sb-badge" id="b-neg">0</span>
+    </a>
+    <a class="sb-item" onclick="go('candidaturas')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Candidaturas <span class="sb-badge" id="b-cand">0</span>
+    </a>
+    <a class="sb-item" onclick="go('municipios')">
+      <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M10 21v-4h4v4"/></svg>
+      Municípios
+    </a>
+    <a class="sb-item" onclick="go('fundos')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      Fundos UE
+    </a>
+
+    <div class="sb-section">Ações</div>
+    <a class="sb-item" onclick="go('inscrever')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Inscrever Negócio
+    </a>
+    <a class="sb-item" onclick="go('candidatar')">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+      Nova Candidatura
+    </a>
+
+    <div class="sb-footer">
+      <p>ribatejovivo.com<br>Santarém · Portugal · 2026</p>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <header class="topbar">
+      <h2 id="page-title">Dashboard</h2>
+      <div class="topbar-right">
+        <span class="topbar-dot"></span>
+        <span class="topbar-date" id="topbar-date"></span>
+      </div>
+    </header>
+    <div class="content" id="content"></div>
+  </div>
 </div>
+
+<script>
+// ══════════════════════════════════════════
+// BASE DE DADOS (localStorage persistente)
+// ══════════════════════════════════════════
+const DB_KEY = 'rv_db_v2';
+
+const DEFAULT_DB = {
+  negocios: [
+    {id:1,nome:'Pastelaria Central',resp:'Ana Ferreira',email:'ana@pastelaria.pt',tel:'966111222',municipio:'Santarém',setor:'Restauração',nif:'123456789',estado:'ativo',inscrito:'2026-01-10',desc:'Pastelaria tradicional no centro histórico de Santarém'},
+    {id:2,nome:'Livraria do Ribatejo',resp:'João Costa',email:'joao@livraria.pt',tel:'912333444',municipio:'Tomar',setor:'Comércio',nif:'987654321',estado:'ativo',inscrito:'2026-01-15',desc:'Livraria e papelaria com 30 anos de história'},
+    {id:3,nome:'Artesanato Tejo',resp:'Maria Santos',email:'maria@artesanato.pt',tel:'935555666',municipio:'Santarém',setor:'Artesanato',nif:'456789123',estado:'pendente',inscrito:'2026-02-01',desc:'Atelier de artesanato ribatejano'},
+  ],
+  candidaturas: [
+    {id:1,negocio:'Pastelaria Central',fundo:'PRR — Modernização Comércio',valor:45000,taxa:70,estado:'em análise',data:'2026-01-20',progresso:60,municipio:'Santarém'},
+    {id:2,negocio:'CM Santarém',fundo:'PT2030 — Centro Histórico',valor:850000,taxa:85,estado:'submetida',data:'2026-02-05',progresso:100,municipio:'Santarém'},
+    {id:3,negocio:'Livraria do Ribatejo',fundo:'COMPETE 2030 — Digitalização',valor:25000,taxa:65,estado:'rascunho',data:'2026-02-10',progresso:35,municipio:'Tomar'},
+  ],
+  municipios:[
+    {nome:'Santarém',desc:'Capital de distrito — centro histórico',ancora:true},
+    {nome:'Tomar',desc:'Convento de Cristo — turismo e cultura',ancora:false},
+    {nome:'Abrantes',desc:'Vale do Tejo — em prospeção',ancora:false},
+    {nome:'Almeirim',desc:'Lezíria ribatejana',ancora:false},
+    {nome:'Constância',desc:'Confluência do Tejo e Zêzere',ancora:false},
+    {nome:'Golegã',desc:'Capital do cavalo — turismo equestre',ancora:false},
+  ],
+  nextId:10
+};
+
+function loadDB(){
+  try{
+    const s=localStorage.getItem(DB_KEY);
+    if(s) return JSON.parse(s);
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_DB));
+}
+function saveDB(){
+  try{ localStorage.setItem(DB_KEY, JSON.stringify(db)); }catch(e){}
+}
+let db = loadDB();
+
+// ══════════════════════════════════════════
+// NAVEGAÇÃO
+// ══════════════════════════════════════════
+const titles = {
+  dashboard:'Dashboard',
+  agente:'Agente IA — Assistente de Candidaturas',
+  negocios:'Negócios Inscritos',
+  candidaturas:'Candidaturas',
+  municipios:'Municípios Parceiros',
+  fundos:'Fundos Europeus Disponíveis',
+  inscrever:'Inscrever Novo Negócio',
+  candidatar:'Nova Candidatura'
+};
+
+let currentView = '';
+let chatHistory = [];
+let isBusy = false;
+let inscStep = 1;
+let inscData = {};
+let candData = {};
+
+function go(view){
+  currentView = view;
+  document.getElementById('page-title').textContent = titles[view]||view;
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
+  const el = document.querySelector(`.sb-item[onclick*="${view}"]`);
+  if(el) el.classList.add('active');
+  refreshBadges();
+  const renders = {dashboard:vDash,agente:vAgente,negocios:vNegocios,candidaturas:vCandidaturas,municipios:vMunicipios,fundos:vFundos,inscrever:vInscrever,candidatar:vCandidatar};
+  document.getElementById('content').innerHTML = renders[view] ? renders[view]() : '';
+  if(view==='agente') initChat();
+  window.scrollTo(0,0);
+}
+
+function refreshBadges(){
+  document.getElementById('b-neg').textContent = db.negocios.length;
+  document.getElementById('b-cand').textContent = db.candidaturas.length;
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function vDash(){
+  const totalVal = db.candidaturas.reduce((s,c)=>s+c.valor,0);
+  const aprovadas = db.candidaturas.filter(c=>c.estado==='aprovada').length;
+  const ativos = db.negocios.filter(n=>n.estado==='ativo').length;
+  return `
+  <div class="stat-grid">
+    <div class="stat-card"><div class="slabel">Negócios inscritos</div><div class="sval">${db.negocios.length}</div><div class="ssub"><span class="sdot"></span>${ativos} ativos</div></div>
+    <div class="stat-card"><div class="slabel">Candidaturas</div><div class="sval">${db.candidaturas.length}</div><div class="ssub">${aprovadas} aprovadas</div></div>
+    <div class="stat-card"><div class="slabel">Volume total</div><div class="sval">€${Math.round(totalVal/1000)}k</div><div class="ssub">em candidaturas</div></div>
+    <div class="stat-card"><div class="slabel">Municípios</div><div class="sval">${db.municipios.length}</div><div class="ssub">no Ribatejo</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+    <div class="card">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Candidaturas recentes</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Entidade</th><th>Fundo</th><th>Estado</th><th>Progress.</th></tr></thead>
+          <tbody>
+            ${db.candidaturas.slice(-4).map(c=>`
+              <tr>
+                <td class="td-name">${c.negocio}</td>
+                <td style="font-size:12px;max-width:140px">${c.fundo}</td>
+                <td>${badgeC(c.estado)}</td>
+                <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill" style="width:${c.progresso}%"></div></div><span class="prog-val">${c.progresso}%</span></div></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:0.875rem"><button class="btn btn-outline btn-sm" onclick="go('candidaturas')">Ver todas →</button></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M3 9h18M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2M3 9v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/></svg> Negócios recentes</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Nome</th><th>Município</th><th>Setor</th><th>Estado</th></tr></thead>
+          <tbody>
+            ${db.negocios.slice(-4).map(n=>`
+              <tr>
+                <td class="td-name">${n.nome}</td>
+                <td>${n.municipio}</td>
+                <td>${n.setor}</td>
+                <td>${badgeN(n.estado)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:0.875rem"><button class="btn btn-outline btn-sm" onclick="go('negocios')">Ver todos →</button></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:0">
+    <div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg> Acesso rápido ao Agente IA</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">O assistente de inteligência artificial pode ajudá-lo a identificar fundos, preparar candidaturas e responder a dúvidas sobre o processo de financiamento europeu.</p>
+    <button class="btn btn-primary" onclick="go('agente')">Abrir assistente IA →</button>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// AGENTE IA
+// ══════════════════════════════════════════
+function vAgente(){
+  return `
+  <div class="chat-shell">
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-suggestions" id="suggestions">
+      <span class="sugg" onclick="sendSugg(this.textContent)">Que fundos existem para restaurantes?</span>
+      <span class="sugg" onclick="sendSugg(this.textContent)">Como me candidato ao PT2030?</span>
+      <span class="sugg" onclick="sendSugg(this.textContent)">Que documentos preciso para candidatar?</span>
+      <span class="sugg" onclick="sendSugg(this.textContent)">Qual é a taxa de financiamento do PRR?</span>
+      <span class="sugg" onclick="sendSugg(this.textContent)">Quero modernizar o meu negócio</span>
+      <span class="sugg" onclick="sendSugg(this.textContent)">Diferença entre PT2030 e COMPETE 2030</span>
+    </div>
+    <div class="chat-input-bar">
+      <input id="chat-in" placeholder="Escreva a sua pergunta aqui..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendMsg();event.preventDefault()}"/>
+      <button class="btn btn-primary" onclick="sendMsg()" id="send-btn">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+        Enviar
+      </button>
+    </div>
+  </div>`;
+}
+
+function initChat(){
+  if(chatHistory.length===0){
+    chatHistory=[{role:'assistant',content:`Olá! Sou o **assistente da Ribatejo Vivo**, especializado em fundos europeus para o Ribatejo.\n\nPosso ajudá-lo a:\n• Identificar os fundos certos para o seu negócio ou município\n• Guiá-lo no processo de candidatura passo a passo\n• Explicar os requisitos e documentação necessária\n• Calcular o apoio financeiro estimado\n\nTemos atualmente **${db.negocios.length} negócios** inscritos e **${db.candidaturas.length} candidaturas** em curso na nossa plataforma.\n\nComo posso ajudá-lo hoje?`}];
+  }
+  renderMsgs();
+}
+
+function renderMsgs(){
+  const el=document.getElementById('chat-msgs');
+  if(!el)return;
+  el.innerHTML=chatHistory.map(m=>`
+    <div class="msg-wrap" style="align-items:${m.role==='assistant'?'flex-start':'flex-end'}">
+      <div class="msg-who">${m.role==='assistant'?'Assistente Ribatejo Vivo':'Você'}</div>
+      <div class="msg-${m.role==='assistant'?'ai':'user'}">${m.content.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>').replace(/•/g,'&#8226;')}</div>
+    </div>`).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+function showTyping(){
+  const el=document.getElementById('chat-msgs');
+  if(!el)return;
+  const d=document.createElement('div');
+  d.id='typing-ind';d.className='msg-wrap';d.style.alignItems='flex-start';
+  d.innerHTML=`<div class="msg-who">Assistente Ribatejo Vivo</div><div class="msg-ai"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
+}
+
+function removeTyping(){
+  const t=document.getElementById('typing-ind');
+  if(t)t.remove();
+}
+
+function sendSugg(t){
+  document.getElementById('chat-in').value=t;
+  sendMsg();
+}
+
+async function sendMsg(){
+  if(isBusy)return;
+  const inp=document.getElementById('chat-in');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  inp.value='';
+  document.getElementById('suggestions').style.display='none';
+  document.getElementById('send-btn').disabled=true;
+  chatHistory.push({role:'user',content:msg});
+  renderMsgs();
+  isBusy=true;
+  showTyping();
+
+  const sys=`És o assistente especializado da Ribatejo Vivo — uma plataforma de consultoria de fundos europeus para o território ribatejano (Santarém, Tomar, Abrantes, Almeirim, Constância, Golegã), em Portugal.
+
+O teu objetivo é ajudar utilizadores portugueses a:
+1. Identificar os fundos europeus adequados ao seu perfil
+2. Compreender os requisitos e processo de candidatura
+3. Saber que documentos são necessários
+4. Calcular apoio financeiro estimado
+
+Base de dados atual: ${db.negocios.length} negócios inscritos, ${db.candidaturas.length} candidaturas ativas.
+
+FUNDOS DISPONÍVEIS:
+- PT2030 (Portugal 2030): desenvolvimento regional, reabilitação urbana, mobilidade, digitalização. Taxa: 70-85%. Prazo: 2021-2027.
+- PRR (Plano de Recuperação e Resiliência): habitação, digitalização pública, agendas mobilizadoras. Taxa: 85-100%. URGENTE — fundos até 2026.
+- FEDER: infraestruturas, eficiência energética, competitividade. Taxa: 80%.
+- COMPETE 2030: PME, inovação, internacionalização, modernização. Taxa: 45-65%.
+- FEADER/PEPAC: agricultura, desenvolvimento rural, turismo rural. Variável.
+- FSE+: formação profissional, emprego, inclusão social. Taxa: 70-85%.
+
+DOCUMENTAÇÃO TÍPICA PARA CANDIDATURA:
+- Certidão não dívida AT e Segurança Social (max 6 meses)
+- Certidão do registo comercial / DGAL
+- Últimas 3 declarações IRS/IRC
+- Plano de negócios ou memória descritiva
+- Orçamentos dos investimentos previstos
+- Caderneta predial (se obra)
+
+Responde SEMPRE em português europeu. Sê direto, prático e encorajador. Usa • para listas. Máximo 220 palavras. Quando adequado, sugere inscrever o negócio ou iniciar uma candidatura.`;
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:sys,
+        messages:chatHistory.map(m=>({role:m.role,content:m.content}))
+      })
+    });
+    const data=await r.json();
+    const reply=data.content?.[0]?.text||'Desculpe, ocorreu um erro. Tente novamente.';
+    removeTyping();
+    chatHistory.push({role:'assistant',content:reply});
+    renderMsgs();
+  }catch(e){
+    removeTyping();
+    chatHistory.push({role:'assistant',content:'Ocorreu um erro de ligação. Por favor verifique a sua ligação à internet e tente novamente.'});
+    renderMsgs();
+  }
+  isBusy=false;
+  document.getElementById('send-btn').disabled=false;
+  document.getElementById('chat-in').focus();
+}
+
+// ══════════════════════════════════════════
+// NEGÓCIOS
+// ══════════════════════════════════════════
+function vNegocios(){
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <p style="font-size:13px;color:var(--muted)">${db.negocios.length} negócios na base de dados</p>
+    <button class="btn btn-primary" onclick="go('inscrever')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Inscrever negócio
+    </button>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Nome</th><th>Responsável</th><th>Email</th><th>Município</th><th>Setor</th><th>NIF</th><th>Estado</th><th>Inscrito</th><th></th></tr></thead>
+        <tbody>
+          ${db.negocios.map(n=>`
+            <tr>
+              <td class="td-name">${n.nome}</td>
+              <td>${n.resp||n.responsavel||'—'}</td>
+              <td style="font-size:12px">${n.email}</td>
+              <td>${n.municipio}</td>
+              <td>${n.setor}</td>
+              <td style="font-size:12px;font-family:monospace">${n.nif}</td>
+              <td>${badgeN(n.estado)}</td>
+              <td style="font-size:12px;color:var(--muted)">${n.inscrito}</td>
+              <td><button class="btn btn-outline btn-sm" onclick="eliminarNeg(${n.id})">✕</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function eliminarNeg(id){
+  if(!confirm('Eliminar este negócio?'))return;
+  db.negocios=db.negocios.filter(n=>n.id!==id);
+  saveDB();
+  go('negocios');
+}
+
+// ══════════════════════════════════════════
+// CANDIDATURAS
+// ══════════════════════════════════════════
+function vCandidaturas(){
+  const total=db.candidaturas.reduce((s,c)=>s+c.valor,0);
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <p style="font-size:13px;color:var(--muted)">${db.candidaturas.length} candidaturas · €${total.toLocaleString('pt-PT')} em volume total</p>
+    <button class="btn btn-primary" onclick="go('candidatar')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova candidatura
+    </button>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Entidade</th><th>Fundo</th><th>Valor</th><th>Taxa</th><th>Apoio estimado</th><th>Estado</th><th>Progresso</th><th>Data</th><th></th></tr></thead>
+        <tbody>
+          ${db.candidaturas.map(c=>`
+            <tr>
+              <td class="td-name">${c.negocio}</td>
+              <td style="font-size:12px;max-width:160px">${c.fundo}</td>
+              <td>€${c.valor.toLocaleString('pt-PT')}</td>
+              <td>${c.taxa}%</td>
+              <td style="color:var(--success);font-weight:700">€${Math.round(c.valor*c.taxa/100).toLocaleString('pt-PT')}</td>
+              <td>${badgeC(c.estado)}</td>
+              <td style="min-width:100px"><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill" style="width:${c.progresso}%"></div></div><span class="prog-val">${c.progresso}%</span></div></td>
+              <td style="font-size:12px;color:var(--muted)">${c.data}</td>
+              <td><button class="btn btn-outline btn-sm" onclick="eliminarCand(${c.id})">✕</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function eliminarCand(id){
+  if(!confirm('Eliminar esta candidatura?'))return;
+  db.candidaturas=db.candidaturas.filter(c=>c.id!==id);
+  saveDB();
+  go('candidaturas');
+}
+
+// ══════════════════════════════════════════
+// MUNICÍPIOS
+// ══════════════════════════════════════════
+function vMunicipios(){
+  return `
+  <div class="muni-grid">
+    ${db.municipios.map(m=>{
+      const negs=db.negocios.filter(n=>n.municipio===m.nome).length;
+      const cands=db.candidaturas.filter(c=>c.municipio===m.nome).length;
+      return `
+        <div class="muni-card ${negs>0||cands>0?'active-muni':''}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+            <div>
+              <div class="muni-name">${m.nome}${m.ancora?' ⭐':''}</div>
+              <div class="muni-desc">${m.desc}</div>
+            </div>
+            <span class="badge ${negs>0||cands>0?'b-green':'b-gray'}">${negs>0||cands>0?'ativo':'prospeção'}</span>
+          </div>
+          <div class="muni-stats">
+            <div><div class="muni-stat-val">${negs}</div><div class="muni-stat-lbl">negócios</div></div>
+            <div><div class="muni-stat-val">${cands}</div><div class="muni-stat-lbl">candidaturas</div></div>
+          </div>
+        </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// FUNDOS UE
+// ══════════════════════════════════════════
+function vFundos(){
+  const fundos=[
+    {tag:'PT2030',nome:'Portugal 2030',desc:'Principal programa operacional. Desenvolvimento regional, reabilitação urbana, mobilidade sustentável e digitalização municipal.',taxa:'70–85%',max:'Até 5M€',prazo:'2021–2027',quem:'Câmaras, empresas, associações'},
+    {tag:'PRR',nome:'Plano de Recuperação e Resiliência',desc:'URGENTE — fundos têm de ser gastos até 2026. Foco em habitação, reabilitação de edifícios e digitalização da administração pública.',taxa:'85–100%',max:'Sem limite fixo',prazo:'Até 2026',quem:'Câmaras, Estado'},
+    {tag:'FEDER',nome:'Fundo Europeu de Desenvolvimento Regional',desc:'Infraestruturas, eficiência energética, iluminação pública LED, reabilitação de espaços e acolhimento empresarial.',taxa:'80%',max:'600k€ (energia)',prazo:'2021–2027',quem:'Câmaras, PME'},
+    {tag:'COMPETE 2030',nome:'Competitividade e Internacionalização',desc:'Para PME e pequenos comerciantes. Modernização tecnológica, inovação, internacionalização e digitalização do negócio.',taxa:'45–65%',max:'200k€',prazo:'2021–2027',quem:'PME, microempresas'},
+    {tag:'FSE+',nome:'Fundo Social Europeu Plus',desc:'Formação profissional, qualificação de trabalhadores, apoio ao emprego e programas de inclusão social.',taxa:'70–85%',max:'Variável',prazo:'2021–2027',quem:'Câmaras, associações'},
+    {tag:'FEADER',nome:'Fundo Europeu Agrícola',desc:'Desenvolvimento rural, modernização agrícola, turismo rural, valorização do património natural e agroalimentar.',taxa:'Variável',max:'Variável',prazo:'2021–2027',quem:'Agricultores, municípios rurais'},
+  ];
+  return `
+  <div class="fundos-grid">
+    ${fundos.map(f=>`
+      <div class="fundo-card">
+        <div class="fundo-tag">${f.tag}</div>
+        <div class="fundo-name">${f.nome}</div>
+        <div class="fundo-desc">${f.desc}</div>
+        <div class="fundo-meta">
+          <span class="fundo-pill">Taxa: ${f.taxa}</span>
+          <span class="fundo-pill" style="background:var(--info-bg);color:var(--info)">Máx: ${f.max}</span>
+          <span class="fundo-pill" style="background:#FFF8E1;color:#7B5A00">Prazo: ${f.prazo}</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--muted)">Para: ${f.quem}</div>
+      </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="card-title">Precisa de ajuda a escolher o fundo certo?</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">O nosso agente IA analisa o seu perfil e recomenda os fundos mais adequados, calculando o apoio estimado.</p>
+    <button class="btn btn-primary" onclick="go('agente')">Falar com o assistente IA →</button>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// INSCREVER NEGÓCIO (4 passos)
+// ══════════════════════════════════════════
+function stepBar(atual){
+  const steps=['Negócio','Contacto','Setor','Confirmar'];
+  return `
+    <div class="steps">
+      ${steps.map((s,i)=>`<div class="step-item ${i+1<atual?'done':i+1===atual?'active':''}">${i+1<atual?'✓ ':''}<span class="step-num">${i+1}</span>${s}</div>`).join('')}
+    </div>
+    <div class="prog-steps"><div class="prog-steps-fill" style="width:${((atual-1)/3)*100}%"></div></div>`;
+}
+
+function vInscrever(){
+  if(inscStep===1) return stepBar(1)+`
+    <div class="card">
+      <div class="card-title">Dados do negócio</div>
+      <div class="form-grid">
+        <div class="field full"><label>Nome do negócio *</label><input id="f-nome" value="${inscData.nome||''}" placeholder="Ex: Pastelaria Central Santarém"></div>
+        <div class="field"><label>NIF *</label><input id="f-nif" value="${inscData.nif||''}" placeholder="123456789" maxlength="9"></div>
+        <div class="field"><label>Data de abertura</label><input id="f-abertura" type="date" value="${inscData.abertura||''}"></div>
+        <div class="field full"><label>Breve descrição</label><textarea id="f-descricao" placeholder="Descreva o seu negócio em poucas palavras...">${inscData.descricao||''}</textarea></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+        <button class="btn btn-primary" onclick="inscNext(1)">Continuar →</button>
+      </div>
+    </div>`;
+
+  if(inscStep===2) return stepBar(2)+`
+    <div class="card">
+      <div class="card-title">Dados de contacto</div>
+      <div class="form-grid">
+        <div class="field"><label>Responsável *</label><input id="f-resp" value="${inscData.resp||''}" placeholder="Nome completo"></div>
+        <div class="field"><label>Cargo</label><input id="f-cargo" value="${inscData.cargo||''}" placeholder="Proprietário / Gerente"></div>
+        <div class="field"><label>Email *</label><input id="f-email" type="email" value="${inscData.email||''}" placeholder="email@exemplo.pt"></div>
+        <div class="field"><label>Telefone *</label><input id="f-tel" value="${inscData.tel||''}" placeholder="+351 9XX XXX XXX"></div>
+        <div class="field"><label>Município *</label>
+          <select id="f-mun">
+            <option value="">Selecionar município...</option>
+            ${db.municipios.map(m=>`<option ${inscData.municipio===m.nome?'selected':''}>${m.nome}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Morada</label><input id="f-morada" value="${inscData.morada||''}" placeholder="Rua, número, código postal"></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
+        <button class="btn btn-outline" onclick="inscStep=1;go('inscrever')">← Voltar</button>
+        <button class="btn btn-primary" onclick="inscNext(2)">Continuar →</button>
+      </div>
+    </div>`;
+
+  if(inscStep===3) return stepBar(3)+`
+    <div class="card">
+      <div class="card-title">Setor e necessidades</div>
+      <div class="form-grid">
+        <div class="field"><label>Setor de atividade *</label>
+          <select id="f-setor">
+            <option value="">Selecionar setor...</option>
+            ${['Restauração','Comércio a retalho','Artesanato','Turismo','Serviços locais','Agricultura','Indústria','Saúde e bem-estar','Educação','Outro'].map(s=>`<option ${inscData.setor===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>N.º de trabalhadores</label>
+          <select id="f-trab">
+            ${['Só eu (1)','2–4','5–9','10–49','50+'].map(t=>`<option ${inscData.trabalhadores===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Tipo de apoio desejado</label>
+          <select id="f-apoio">
+            ${['Modernização tecnológica','Expansão ou remodelação','Formação de funcionários','Marketing e digitalização','Eficiência energética','Internacionalização','Outro'].map(a=>`<option ${inscData.apoio===a?'selected':''}>${a}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Investimento estimado (€)</label>
+          <input id="f-investimento" type="number" value="${inscData.investimento||''}" placeholder="Ex: 50000">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
+        <button class="btn btn-outline" onclick="inscStep=2;go('inscrever')">← Voltar</button>
+        <button class="btn btn-primary" onclick="inscNext(3)">Continuar →</button>
+      </div>
+    </div>`;
+
+  // Passo 4 - confirmação
+  return stepBar(4)+`
+    <div class="card">
+      <div class="card-title">Confirmar dados</div>
+      <table style="width:100%;font-size:13px;border-collapse:collapse">
+        ${[
+          ['Nome',inscData.nome],['NIF',inscData.nif],['Responsável',inscData.resp],
+          ['Email',inscData.email],['Telefone',inscData.tel],['Município',inscData.municipio],
+          ['Morada',inscData.morada||'—'],['Setor',inscData.setor],['Trabalhadores',inscData.trabalhadores],
+          ['Apoio desejado',inscData.apoio],['Investimento estimado',inscData.investimento?'€'+parseInt(inscData.investimento).toLocaleString('pt-PT'):'—']
+        ].map(([k,v])=>`<tr><td style="padding:8px 0;color:var(--muted);border-bottom:1px solid var(--border);width:40%">${k}</td><td style="padding:8px 0;border-bottom:1px solid var(--border);font-weight:700">${v||'—'}</td></tr>`).join('')}
+      </table>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem">
+        <button class="btn btn-outline" onclick="inscStep=3;go('inscrever')">← Voltar</button>
+        <button class="btn btn-gold" onclick="confirmarInsc()">✓ Confirmar inscrição</button>
+      </div>
+    </div>`;
+}
+
+function inscNext(step){
+  if(step===1){
+    const nome=document.getElementById('f-nome').value.trim();
+    const nif=document.getElementById('f-nif').value.trim();
+    if(!nome||!nif){alert('Por favor preencha o nome e o NIF.');return;}
+    inscData.nome=nome;inscData.nif=nif;
+    inscData.abertura=document.getElementById('f-abertura').value;
+    inscData.descricao=document.getElementById('f-descricao').value;
+    inscStep=2;
+  } else if(step===2){
+    const resp=document.getElementById('f-resp').value.trim();
+    const email=document.getElementById('f-email').value.trim();
+    const tel=document.getElementById('f-tel').value.trim();
+    const mun=document.getElementById('f-mun').value;
+    if(!resp||!email||!tel||!mun){alert('Por favor preencha todos os campos obrigatórios.');return;}
+    inscData.resp=resp;inscData.email=email;inscData.tel=tel;inscData.municipio=mun;
+    inscData.cargo=document.getElementById('f-cargo').value;
+    inscData.morada=document.getElementById('f-morada').value;
+    inscStep=3;
+  } else if(step===3){
+    const setor=document.getElementById('f-setor').value;
+    if(!setor){alert('Por favor selecione o setor de atividade.');return;}
+    inscData.setor=setor;
+    inscData.trabalhadores=document.getElementById('f-trab').value;
+    inscData.apoio=document.getElementById('f-apoio').value;
+    inscData.investimento=document.getElementById('f-investimento').value;
+    inscStep=4;
+  }
+  go('inscrever');
+}
+
+function confirmarInsc(){
+  const novo={
+    id:db.nextId++,nome:inscData.nome,resp:inscData.resp,
+    email:inscData.email,tel:inscData.tel,municipio:inscData.municipio,
+    setor:inscData.setor,nif:inscData.nif,estado:'ativo',
+    inscrito:new Date().toISOString().slice(0,10),desc:inscData.descricao||''
+  };
+  db.negocios.push(novo);
+  saveDB();
+  inscStep=1;inscData={};
+  document.getElementById('content').innerHTML=`
+    <div class="card success-center">
+      <div class="success-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
+      <div style="font-size:20px;font-weight:700;color:var(--green);margin-bottom:8px">Negócio inscrito com sucesso!</div>
+      <div style="color:var(--muted);margin-bottom:1.5rem"><strong>${novo.nome}</strong> foi adicionado à base de dados do Ribatejo Vivo.</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-outline" onclick="go('negocios')">Ver todos os negócios</button>
+        <button class="btn btn-primary" onclick="go('candidatar')">Iniciar candidatura →</button>
+        <button class="btn btn-gold" onclick="go('agente')">Pedir ajuda ao agente IA</button>
+      </div>
+    </div>`;
+  refreshBadges();
+}
+
+// ══════════════════════════════════════════
+// NOVA CANDIDATURA
+// ══════════════════════════════════════════
+function vCandidatar(){
+  const fundos=['PT2030 — Reabilitação Urbana','PT2030 — Mobilidade Sustentável','PT2030 — Digitalização Municipal','PRR — Habitação e Reabilitação','PRR — Digitalização da AP','PRR — Agendas Mobilizadoras','FEDER — Eficiência Energética','FEDER — Competitividade Empresarial','COMPETE 2030 — Modernização PME','COMPETE 2030 — Digitalização','COMPETE 2030 — Internacionalização','FEADER — Turismo Rural','FEADER — Modernização Agrícola','FSE+ — Formação Profissional'];
+  const entidades=[...db.negocios.map(n=>n.nome),'CM Santarém','CM Tomar','CM Abrantes','CM Almeirim','CM Constância','CM Golegã','Assoc. Comercial Santarém'];
+  return `
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:1rem;align-items:start">
+    <div class="card">
+      <div class="card-title">Dados da candidatura</div>
+      <div class="form-grid">
+        <div class="field"><label>Entidade candidata *</label>
+          <select id="c-ent" onchange="calcApoio()">
+            <option value="">Selecionar entidade...</option>
+            ${entidades.map(e=>`<option>${e}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Fundo a candidatar *</label>
+          <select id="c-fundo" onchange="calcApoio()">
+            <option value="">Selecionar fundo...</option>
+            ${fundos.map(f=>`<option>${f}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Valor total do investimento (€) *</label>
+          <input id="c-valor" type="number" placeholder="Ex: 75000" oninput="calcApoio()">
+        </div>
+        <div class="field"><label>Taxa de financiamento (%)</label>
+          <input id="c-taxa" type="number" placeholder="Ex: 75" min="0" max="100" oninput="calcApoio()">
+        </div>
+        <div class="field full"><label>Descrição do projeto *</label>
+          <textarea id="c-desc" rows="3" placeholder="Descreva o projeto que pretende financiar, os objetivos e o impacto esperado..."></textarea>
+        </div>
+        <div class="field"><label>Município</label>
+          <select id="c-mun">
+            <option value="">Selecionar...</option>
+            ${db.municipios.map(m=>`<option>${m.nome}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Prazo limite candidatura</label>
+          <input id="c-prazo" type="date">
+        </div>
+        <div class="field"><label>Estado</label>
+          <select id="c-estado">
+            <option value="rascunho">Rascunho</option>
+            <option value="em preparação">Em preparação</option>
+            <option value="em análise">Em análise</option>
+            <option value="submetida">Submetida</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem">
+        <button class="btn btn-outline" onclick="go('candidaturas')">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarCand()">Guardar candidatura →</button>
+      </div>
+    </div>
+    <div>
+      <div class="card" id="apoio-card">
+        <div class="card-title">Apoio estimado</div>
+        <div style="text-align:center;padding:1rem 0">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Investimento elegível</div>
+          <div style="font-family:'Playfair Display',serif;font-size:28px;color:var(--green)" id="apoio-val">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px" id="apoio-sub">Preencha os campos para calcular</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Documentos necessários</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">
+          • Certidão não dívida AT<br>
+          • Certidão não dívida SS<br>
+          • Registo Comercial / DGAL<br>
+          • Últimas 3 declarações fiscais<br>
+          • Memória descritiva do projeto<br>
+          • Orçamentos do investimento<br>
+          • Plano de financiamento
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Precisa de ajuda?</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:0.875rem">O agente IA pode ajudá-lo a escolher o fundo certo e preparar a documentação.</p>
+        <button class="btn btn-outline" style="width:100%" onclick="go('agente')">Abrir assistente IA →</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function calcApoio(){
+  const val=parseInt(document.getElementById('c-valor')?.value)||0;
+  const taxa=parseInt(document.getElementById('c-taxa')?.value)||0;
+  const apoioEl=document.getElementById('apoio-val');
+  const subEl=document.getElementById('apoio-sub');
+  if(!apoioEl)return;
+  if(val&&taxa){
+    const apoio=Math.round(val*taxa/100);
+    apoioEl.textContent='€'+apoio.toLocaleString('pt-PT');
+    subEl.textContent=`${taxa}% de €${val.toLocaleString('pt-PT')}`;
+    apoioEl.style.color='var(--success)';
+  } else {
+    apoioEl.textContent='—';
+    subEl.textContent='Preencha os campos para calcular';
+    apoioEl.style.color='var(--green)';
+  }
+}
+
+function guardarCand(){
+  const ent=document.getElementById('c-ent').value;
+  const fundo=document.getElementById('c-fundo').value;
+  const valor=parseInt(document.getElementById('c-valor').value)||0;
+  const taxa=parseInt(document.getElementById('c-taxa').value)||0;
+  const estado=document.getElementById('c-estado').value;
+  const mun=document.getElementById('c-mun').value;
+  if(!ent||!fundo||!valor){alert('Por favor preencha os campos obrigatórios.');return;}
+  const progressos={rascunho:10,'em preparação':40,'em análise':70,submetida:100};
+  db.candidaturas.push({
+    id:db.nextId++,negocio:ent,fundo,valor,taxa,estado,municipio:mun,
+    data:new Date().toISOString().slice(0,10),progresso:progressos[estado]||10
+  });
+  saveDB();
+  document.getElementById('content').innerHTML=`
+    <div class="card success-center">
+      <div class="success-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg></div>
+      <div style="font-size:20px;font-weight:700;color:var(--green);margin-bottom:8px">Candidatura guardada!</div>
+      <div style="color:var(--muted);margin-bottom:1.5rem">A candidatura de <strong>${ent}</strong> ao <strong>${fundo}</strong> foi registada com sucesso.</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-outline" onclick="go('candidaturas')">Ver candidaturas</button>
+        <button class="btn btn-primary" onclick="go('candidatar')">Nova candidatura</button>
+        <button class="btn btn-gold" onclick="go('agente')">Pedir ajuda ao agente IA</button>
+      </div>
+    </div>`;
+  refreshBadges();
+}
+
+// ══════════════════════════════════════════
+// UTILITÁRIOS
+// ══════════════════════════════════════════
+function badgeN(e){
+  const m={ativo:'b-green',pendente:'b-amber',inativo:'b-gray'};
+  return `<span class="badge ${m[e]||'b-gray'}">${e}</span>`;
+}
+function badgeC(e){
+  const m={rascunho:'b-gray','em preparação':'b-amber','em análise':'b-gold',submetida:'b-blue',aprovada:'b-green',rejeitada:'b-gray'};
+  return `<span class="badge ${m[e]||'b-gray'}">${e}</span>`;
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+go('dashboard');
+</script>
 </body>
 </html>
